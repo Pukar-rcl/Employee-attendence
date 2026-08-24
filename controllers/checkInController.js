@@ -33,8 +33,7 @@ export const checkIn = async (req, res) => {
 
   const checkinMinutes = CurrentinMinutes - configIntime;
 
-  let mark = "absent",
-    inDelay;
+  let mark, inDelay;
   if (checkinMinutes > 0) {
     mark = "delay";
     inDelay = checkinMinutes;
@@ -52,4 +51,64 @@ export const checkIn = async (req, res) => {
   await attendenceEntry.save();
 
   return response(res, true, "Attedence recorded");
+};
+
+export const checkOut = async (req, res) => {
+  const id = req.headers.id;
+
+  const date = new Date();
+
+  const { dateKey, timeKey } = date.toISOString().split("T");
+
+  const { hours, minutes } = timeKey.split(":").map(Number);
+
+  const configurtion = await Configuration.findOne();
+
+  if (!configurtion) {
+    throw new errorDef(500, "configuration not found");
+  }
+
+  const { outHours, outMinutes } = configurtion.punchOutTime
+    .split(":")
+    .map(Number);
+
+  const outTime = outHours * 60 + outMinutes;
+
+  const totalMinutes = hours * 60 + minutes;
+
+  let mark = "on time",
+    delay,
+    extra = 0;
+
+  if (outTime < totalMinutes) {
+    mark = "early";
+    delay = outTime - totalMinutes;
+  }
+
+  if (totalMinutes < 840) {
+    mark = "half day";
+    delay = outTime - 840;
+  }
+
+  if (totalMinutes < outTime) {
+    mark = "overtime";
+    extra = Math.abs(outTime - totalMinutes);
+    delay = 0;
+  }
+
+  const entry = await Attendence.findOneAndUpdate(
+    { employee: id, date: dateKey },
+    {
+      checkOut: timeKey,
+      checkOutStatus: mark,
+      extraTime: extra,
+      checkOutEarly: delay
+    }
+  );
+
+  if(!entry){
+    throw new errorDef(500, "Employee id not found in Attendence Database")
+  }
+
+  return response(res, true, "Check out successful");
 };
