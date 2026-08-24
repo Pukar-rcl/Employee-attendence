@@ -77,20 +77,16 @@ export const checkOut = async (req, res) => {
   const totalMinutes = hours * 60 + minutes;
 
   let mark = "on time",
-    delay,
+    delay = 0,
     extra = 0;
 
-  if (outTime < totalMinutes) {
+  if (outTime > totalMinutes) {
     mark = "early";
     delay = outTime - totalMinutes;
-  }
-
-  if (totalMinutes < 840) {
+  } else if (totalMinutes < 840) {
     mark = "half day";
     delay = outTime - 840;
-  }
-
-  if (totalMinutes < outTime) {
+  } else if (totalMinutes > outTime) {
     mark = "overtime";
     extra = Math.abs(outTime - totalMinutes);
     delay = 0;
@@ -106,8 +102,8 @@ export const checkOut = async (req, res) => {
     }
   );
 
-  if(!entry){
-    throw new errorDef(500, "Employee id not found in Attendence Database")
+  if (!entry) {
+    throw new errorDef(500, "Employee id not found in Attendence Database");
   }
 
   return response(res, true, "Check out successful");
