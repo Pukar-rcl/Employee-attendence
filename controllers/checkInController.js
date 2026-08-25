@@ -1,4 +1,4 @@
-import { response } from "express";
+import response from "../utils/respose.js";
 import Employee from "../models/employee.js";
 import Configuration from "../models/config.model.js";
 import errorDef from "../utils/errorDef.js";
@@ -14,41 +14,43 @@ export const checkIn = async (req, res) => {
   }
   const date = new Date();
 
-  const { dateKey, timeKey } = date.toISOString().split("T");
+  const today = new Date(date);
+  today.setHours(0, 0, 0, 0);
 
-  const { hours, minute } = timeKey.split(":").map(Number);
+  const hours = date.getHours();
+  const minutes = date.getMinutes();
+
   const configuration = await Configuration.findOne();
 
   if (!configuration) {
-    throw new errorDef(500, "configuration not found");
+    throw new errorDef(500, "Configuration not found");
   }
 
-  const CurrentinMinutes = hours * 60 + minute;
+  const currentMinutes = hours * 60 + minutes;
 
-  const { inHours, inMinutes } = configuration.punchInTime
-    .split(":")
-    .map(Number);
+  const [inHours, inMinutes] = configuration.punchInTime.split(":").map(Number);
 
-  const configIntime = inHours * 60 + inMinutes;
+  const configInMinutes = inHours * 60 + inMinutes;
 
-  const checkinMinutes = CurrentinMinutes - configIntime;
+  const checkinMinutes = currentMinutes - configInMinutes;
 
-  let mark, inDelay;
+  let mark = "on time";
+  let inDelay = 0;
+
   if (checkinMinutes > 0) {
     mark = "delay";
     inDelay = checkinMinutes;
-  } else {
-    mark = "on time";
   }
 
-  const attendenceEntry = new Attendence({
+  const attendanceEntry = new Attendence({
     employee: id,
-    checkIn: timeKey,
-    date: dateKey,
-    checkInStatus: mark
+    checkIn: date,
+    date: today,
+    checkInStatus: mark,
+    checkInDelay: inDelay
   });
 
-  await attendenceEntry.save();
+  await attendanceEntry.save();
 
   return response(res, true, "Attedence recorded");
 };
@@ -58,44 +60,46 @@ export const checkOut = async (req, res) => {
 
   const date = new Date();
 
-  const { dateKey, timeKey } = date.toISOString().split("T");
+  const today = new Date(date);
+  today.setHours(0, 0, 0, 0);
 
-  const { hours, minutes } = timeKey.split(":").map(Number);
+  const hours = date.getHours();
+  const minutes = date.getMinutes();
 
-  const configurtion = await Configuration.findOne();
+  const configuration = await Configuration.findOne();
 
-  if (!configurtion) {
-    throw new errorDef(500, "configuration not found");
+  if (!configuration) {
+    throw new errorDef(500, "Configuration not found");
   }
 
-  const { outHours, outMinutes } = configurtion.punchOutTime
+  const [outHours, outMinutes] = configuration.punchOutTime
     .split(":")
     .map(Number);
 
   const outTime = outHours * 60 + outMinutes;
-
   const totalMinutes = hours * 60 + minutes;
 
-  let mark = "on time",
-    delay = 0,
-    extra = 0;
+  let mark = "on time";
+  let delay = 0;
+  let extra = 0;
 
-  if (outTime > totalMinutes) {
+  if (totalMinutes < 14 * 60) {
+    mark = "half";
+  } else if (totalMinutes < outTime) {
     mark = "early";
     delay = outTime - totalMinutes;
-  } else if (totalMinutes < 840) {
-    mark = "half day";
-    delay = outTime - 840;
   } else if (totalMinutes > outTime) {
     mark = "overtime";
-    extra = Math.abs(outTime - totalMinutes);
-    delay = 0;
+    extra = totalMinutes - outTime;
   }
 
   const entry = await Attendence.findOneAndUpdate(
-    { employee: id, date: dateKey },
     {
-      checkOut: timeKey,
+      employee: id,
+      date: today
+    },
+    {
+      checkOut: date,
       checkOutStatus: mark,
       extraTime: extra,
       checkOutEarly: delay
@@ -103,8 +107,11 @@ export const checkOut = async (req, res) => {
   );
 
   if (!entry) {
-    throw new errorDef(500, "Employee id not found in Attendence Database");
+    throw new errorDef(
+      404,
+      "Attendance record not found for this employee today"
+    );
   }
 
-  return response(res, true, "Check out successful");
+  return response(res, 200, "checked Out successfully");
 };

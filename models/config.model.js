@@ -1,7 +1,7 @@
-import mongoose from "mongoose"
+import mongoose from "mongoose";
 
 const configModel = new mongoose.Schema({
-    punchInTime : {type : Date, required : true},
-    punchOutTime : {type : Date, required : true}
-})
-export default mongoose.model('Configuration', configModel);
+  punchInTime: { type: String, required: true },
+  punchOutTime: { type: String, required: true }
+});
+export default mongoose.model("Configuration", configModel);

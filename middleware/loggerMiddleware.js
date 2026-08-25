@@ -1,9 +1,9 @@
-import logger from "../config/logger";
+import logger from "../config/logger.js";
 
 const loggerMiddleware = (req, res, next) => {
   logger.info({
     method: req.method,
-    url: req.originalURL
+    url: req.originalUrl
   });
 
   next();
