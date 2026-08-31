@@ -1,17 +1,18 @@
 import response from "./respose.js";
 
-const rangeValidator = (earlydate, latedate)=>{
-    const {earlyYear, earlyMonth} = earlydate.split('-').split[0][1][2];
-    const {lateYear, lateMonth} = latedate.split('-').split[0][1][2];
+const rangeValidator = (earlyDate, lateDate) => {
+    const start = new Date(earlyDate);
+    const end = new Date(lateDate);
 
-    if(earlyYear>lateYear || earlyMonth>lateMonth){
-        return response(res, false, "invalid date input");
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+        return false;
     }
 
-    if(isNaN(earlydate)||isNaN(latedate))
-    {
-        return response(res, false, "invalid date input")
+    if (start > end) {
+        return false;
     }
-}
 
-export default rangeValidator;                             
+    return true;
+};
+
+export default rangeValidator;

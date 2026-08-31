@@ -3,6 +3,7 @@ import Employee from "../models/employee.js";
 import Configuration from "../models/config.model.js";
 import errorDef from "../utils/errorDef.js";
 import Attendence from "../models/attendence.js";
+import Approval from "../models/approval.model.js";
 
 export const checkIn = async (req, res) => {
   const id = req.headers.id;
@@ -42,8 +43,20 @@ export const checkIn = async (req, res) => {
     inDelay = checkinMinutes;
   }
 
+  if(mark === "delay"){
+    const approval  = new Approval({
+      employee: id,
+      employeeName : employee.name,
+      delayMinutes: inDelay
+    })
+    await approval.save();
+
+    return response(res, true, "Please wait for approval")
+  }
+
   const attendanceEntry = new Attendence({
     employee: id,
+    employeeName : employee.name,
     checkIn: date,
     date: today,
     checkInStatus: mark,
