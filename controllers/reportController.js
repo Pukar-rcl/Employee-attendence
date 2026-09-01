@@ -4,7 +4,6 @@ import rangeValidator from "../utils/rangeValidator.js";
 import errorDef from "../utils/errorDef.js";
 
 export const attendenceCheck = async (req, res) => {
-  console.log("route hit");
   const { from, to } = req.body;
   //2026-05-17
 
@@ -19,11 +18,6 @@ export const attendenceCheck = async (req, res) => {
 
   startDate.setHours(0, 0, 0, 0);
   endDate.setHours(23, 59, 59, 999);
-
-  console.log("from:", from);
-  console.log("to:", to);
-  console.log("startDate:", startDate);
-  console.log("endDate:", endDate);
 
   const report = await Attendence.find({
     date: {

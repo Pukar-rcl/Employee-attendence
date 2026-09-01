@@ -45,13 +45,16 @@ export const checkIn = async (req, res) => {
 
   if(mark === "delay"){
     const approval  = new Approval({
-      employee: id,
-      employeeName : employee.name,
-      delayMinutes: inDelay
-    })
+    employee: id,
+    employeeName : employee.name,
+    checkIn: date,
+    date: today,
+    checkInStatus: mark,
+    checkInDelay: inDelay
+  });
     await approval.save();
 
-    return response(res, true, "Please wait for approval")
+    return response(res, true, "Please wait for approval");
   }
 
   const attendanceEntry = new Attendence({

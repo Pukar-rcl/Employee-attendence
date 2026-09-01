@@ -1,18 +1,22 @@
 import mongoose from "mongoose";
 
 const approvalModel = new mongoose.Schema({
-  delayMinutes: { type: Number },
   employee: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Employee",
     required: true
   },
-  employeeName : {type :String, required : true},
+  checkIn: { type: Date },
+  employeeName: { type: String },
+  date: { type: Date, required: true },
+  checkInStatus: { type: String, enum: ["on time", "delay", "absent"] },
+  checkInDelay: { type: Number, default: 0 },
   managerId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Manager",
     required: true
   },
+  status : {type : String, enums : ["unapproved", "approved"], default : "unapproved"}
 });
 
-export default mongoose.model('Approval', approvalModel);
+export default mongoose.model("Approval", approvalModel);
