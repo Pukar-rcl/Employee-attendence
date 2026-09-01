@@ -13,10 +13,13 @@ const approvalModel = new mongoose.Schema({
   checkInDelay: { type: Number, default: 0 },
   managerId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "Manager",
-    required: true
+    ref: "Manager"
   },
-  status : {type : String, enums : ["unapproved", "approved"], default : "unapproved"}
+  status: {
+    type: String,
+    enum: ["unapproved", "approved"],
+    default: "unapproved"
+  }
 });
 
 export default mongoose.model("Approval", approvalModel);
