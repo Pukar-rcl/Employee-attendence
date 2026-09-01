@@ -1,3 +1,4 @@
 node_modules
 .env
 scribes.txt
+test.js
